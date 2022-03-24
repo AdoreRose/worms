@@ -1,5 +1,6 @@
 package me.adorerose.worms.command;
 
+import me.adorerose.worms.WormsPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -8,6 +9,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 public abstract class PluginCommand implements CommandExecutor {
+    private static final WormsPlugin plugin = WormsPlugin.getInstance();
     private String cmdName;
     private int minArgs;
     private PluginCommand[] subCommands;
@@ -27,7 +29,7 @@ public abstract class PluginCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
-        if (consoleOnly && !sender.isOp()) sender.sendMessage("Эту команду можно выполнить только в консоли.");
+        if (consoleOnly && !sender.isOp()) sender.sendMessage(plugin.getLanguage().ONLY_CONSOLE);
         else if (args.length < minArgs) tooFewArgsAction(sender);
         else {
             if (isComposed()) {
@@ -35,7 +37,7 @@ public abstract class PluginCommand implements CommandExecutor {
                 if (executable != null) {
                     String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
                     executable.execute(sender, args[0], commandArgs);
-                } else sender.sendMessage("Команда не найдена.");
+                } else sender.sendMessage(plugin.getLanguage().CMD_NOT_FOUND);
             }
             else execute(sender, label, args);
         }
@@ -69,7 +71,7 @@ public abstract class PluginCommand implements CommandExecutor {
     }
 
     public void tooFewArgsAction(CommandSender sender) {
-        sender.sendMessage("Минимальное количество аргументов: " + minArgs);
+        sender.sendMessage(plugin.getLanguage().NOT_ENOUGH_ARGS + minArgs);
     }
 
     public String getName() {

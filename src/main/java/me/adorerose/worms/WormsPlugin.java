@@ -40,4 +40,9 @@ public class WormsPlugin extends JavaPlugin {
     public Configuration getConfiguration() {
         return config;
     }
+
+    public Language getLanguage() {
+        return language;
+    }
+
 }
