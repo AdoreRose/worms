@@ -1,0 +1,6 @@
+name: Worms
+main: me.adorerose.worms.WormsPlugin
+version: 0.0.1
+commands:
+   worms:
+     usage: /worms
