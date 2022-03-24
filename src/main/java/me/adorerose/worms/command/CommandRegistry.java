@@ -1,10 +1,13 @@
 package me.adorerose.worms.command;
 
+import me.adorerose.worms.command.plugin.ReloadCommand;
 import me.adorerose.worms.command.worms.WormsCommand;
 import org.bukkit.Bukkit;
 
 public class CommandRegistry {
-    public static final PluginCommand WORMS = new WormsCommand();
+    public static final PluginCommand
+            WORMS = new WormsCommand(),
+            RELOAD = new ReloadCommand();
 
     public static void registerCommands() {
         PluginCommand[] commands = { WORMS };
