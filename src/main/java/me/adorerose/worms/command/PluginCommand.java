@@ -17,9 +17,9 @@ public abstract class PluginCommand implements CommandExecutor {
 
     public void execute(CommandSender sender, String label, String[] args) { }
 
-    public PluginCommand(String name, PluginCommand[] subCommands, int minArgs) {
+    public PluginCommand(String name, PluginCommand[] subCmds, int minArgs) {
         this.cmdName = name;
-        this.subCommands = subCommands;
+        this.subCommands = subCmds == null ? new PluginCommand[0] : subCmds;
         this.minArgs = minArgs;
     }
 
@@ -53,7 +53,7 @@ public abstract class PluginCommand implements CommandExecutor {
     }
 
     public void addSubcommand(PluginCommand[] commands) {
-        PluginCommand[] newCmds = new PluginCommand[this.subCommands.length + commands.length];
+        PluginCommand[] newCmds = new PluginCommand[subCommands.length + commands.length];
         System.arraycopy(this.subCommands, 0, newCmds, 0, this.subCommands.length);
         System.arraycopy(commands, 0, newCmds, this.subCommands.length, commands.length);
         this.subCommands = newCmds;
@@ -67,7 +67,7 @@ public abstract class PluginCommand implements CommandExecutor {
     }
 
     public boolean isComposed() {
-        return subCommands != null && subCommands.length > 0;
+        return subCommands.length > 0;
     }
 
     public void tooFewArgsAction(CommandSender sender) {
