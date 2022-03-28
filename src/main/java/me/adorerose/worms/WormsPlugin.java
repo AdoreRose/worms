@@ -1,6 +1,7 @@
 package me.adorerose.worms;
 
 import me.adorerose.worms.command.CommandRegistry;
+import me.adorerose.worms.event.GeneralListener;
 import me.adorerose.worms.storage.DataStorage;
 import me.adorerose.worms.storage.file.Configuration;
 import me.adorerose.worms.storage.file.Language;
@@ -25,6 +26,7 @@ public class WormsPlugin extends JavaPlugin {
             language = DataStorage.getStorage(Language.class);
 
             CommandRegistry.registerCommands();
+            Bukkit.getPluginManager().registerEvents(new GeneralListener(this), this);
         } catch (Exception e) {
             e.printStackTrace();
             Bukkit.getPluginManager().disablePlugin(this);
