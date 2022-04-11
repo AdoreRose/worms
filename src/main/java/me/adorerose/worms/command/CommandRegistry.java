@@ -1,6 +1,5 @@
 package me.adorerose.worms.command;
 
-import me.adorerose.worms.command.worms.WormsCommand;
 import org.bukkit.Bukkit;
 
 public class CommandRegistry {

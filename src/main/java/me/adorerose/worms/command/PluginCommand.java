@@ -1,6 +1,10 @@
 package me.adorerose.worms.command;
 
 import me.adorerose.worms.WormsPlugin;
+import me.adorerose.worms.service.profile.PlayerProfile;
+import me.adorerose.worms.service.profile.PlayerProfileManager;
+import me.adorerose.worms.storage.file.Language;
+import me.adorerose.worms.util.TextUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,9 +17,10 @@ public abstract class PluginCommand implements CommandExecutor {
     private String cmdName;
     private int minArgs;
     private PluginCommand[] subCommands;
+    private String permission;
     private boolean consoleOnly;
 
-    public void execute(CommandSender sender, String label, String[] args) { }
+    public void execute(PlayerProfile profile, String label, String[] args) { }
 
     public PluginCommand(String name, PluginCommand[] subCmds, int minArgs) {
         this.cmdName = name;
@@ -27,19 +32,38 @@ public abstract class PluginCommand implements CommandExecutor {
         this(name, null, minArgs);
     }
 
+    public PluginCommand(String name) {
+        this(name, null, 0);
+    }
+
     @Override
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
         if (consoleOnly && !sender.isOp()) sender.sendMessage(plugin.getLanguage().ONLY_CONSOLE);
         else if (args.length < minArgs) tooFewArgsAction(sender);
         else {
+            PlayerProfile profile = PlayerProfileManager.getPlayers().get(sender);
+            if (profile == null) return true;
+
+            PluginCommand executable;
+            String permission;
             if (isComposed()) {
-                PluginCommand executable = matchSubcommand(args[0]);
+                executable = matchSubcommand(args[0]);
                 if (executable != null) {
-                    String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
-                    executable.execute(sender, args[0], commandArgs);
-                } else sender.sendMessage(plugin.getLanguage().CMD_NOT_FOUND);
+                    args = Arrays.copyOfRange(args, 1, args.length);
+                    permission = executable.permission;
+                }
+                else {
+                    sender.sendMessage(plugin.getLanguage().CMD_NOT_FOUND);
+                    return true;
+                }
             }
-            else execute(sender, label, args);
+            else {
+                executable = this;
+                permission = this.permission;
+            }
+
+            if (permission != null && !sender.hasPermission(permission)) sender.sendMessage(plugin.getLanguage().NO_PERMISSION);
+            else executable.execute(profile, label, args);
         }
         return true;
     }
@@ -76,5 +100,9 @@ public abstract class PluginCommand implements CommandExecutor {
 
     public String getName() {
         return cmdName;
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
     }
 }
