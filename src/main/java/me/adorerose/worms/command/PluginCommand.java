@@ -3,8 +3,6 @@ package me.adorerose.worms.command;
 import me.adorerose.worms.WormsPlugin;
 import me.adorerose.worms.service.profile.PlayerProfile;
 import me.adorerose.worms.service.profile.PlayerProfileManager;
-import me.adorerose.worms.storage.file.Language;
-import me.adorerose.worms.util.TextUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,9 +11,9 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 public abstract class PluginCommand implements CommandExecutor {
-    private static final WormsPlugin plugin = WormsPlugin.getInstance();
-    private String cmdName;
-    private int minArgs;
+    protected static final WormsPlugin plugin = WormsPlugin.getInstance();
+    private final String cmdName;
+    private final int minArgs;
     private PluginCommand[] subCommands;
     private String permission;
     private boolean consoleOnly;

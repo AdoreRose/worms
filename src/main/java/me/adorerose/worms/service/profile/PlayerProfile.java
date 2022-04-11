@@ -8,4 +8,8 @@ public interface PlayerProfile {
     boolean isAdmin();
 
     AdminProfile asAdmin();
+
+    void sendMessage(String message);
+
+    void sendMessage(String message, Object... args);
 }

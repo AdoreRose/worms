@@ -3,7 +3,6 @@ package me.adorerose.worms.command.test;
 import me.adorerose.worms.command.PluginCommand;
 import me.adorerose.worms.service.profile.PlayerProfile;
 import me.adorerose.worms.service.profile.PlayerProfileManager;
-import org.bukkit.entity.Player;
 
 public class ProfilesCommand extends PluginCommand {
     public ProfilesCommand() {
@@ -13,10 +12,9 @@ public class ProfilesCommand extends PluginCommand {
 
     @Override
     public void execute(PlayerProfile profile, String label, String[] args) {
-        Player player = profile.getPlayer();
-        player.sendMessage("§aСписок профилей онлайн:");
+        profile.sendMessage("§aСписок профилей онлайн:");
         for (PlayerProfile playerProfile: PlayerProfileManager.getPlayers().values()) {
-            player.sendMessage(playerProfile.toString());
+            profile.sendMessage(playerProfile.toString());
         }
     }
 }

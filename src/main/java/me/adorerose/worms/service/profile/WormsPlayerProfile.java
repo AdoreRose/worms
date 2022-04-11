@@ -26,6 +26,16 @@ public class WormsPlayerProfile implements PlayerProfile {
     }
 
     @Override
+    public void sendMessage(String message) {
+        player.sendMessage(message);
+    }
+
+    @Override
+    public void sendMessage(String message, Object... args) {
+        player.sendMessage(String.format(message, args));
+    }
+
+    @Override
     public String toString() {
         return TextUtils.coloredFormat("WormsPlayerProfile[player=%s]", player.getName());
     }

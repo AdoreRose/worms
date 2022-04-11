@@ -14,6 +14,6 @@ public class ReloadCommand extends PluginCommand {
         WormsPlugin plugin = WormsPlugin.getInstance();
         plugin.getConfiguration().load();
         plugin.getLanguage().load();
-        profile.getPlayer().sendMessage(plugin.getLanguage().CONFIG_RELOADED);
+        profile.sendMessage(plugin.getLanguage().CONFIG_RELOADED);
     }
 }
