@@ -6,6 +6,13 @@ public class CuboidAreaSelection implements AreaSelection {
     private Location firstPoint;
     private Location secondPoint;
 
+    public CuboidAreaSelection() { }
+
+    public CuboidAreaSelection(Location pos1, Location pos2) {
+        this.firstPoint = pos1;
+        this.secondPoint = pos2;
+    }
+
     @Override
     public Location firstPoint() {
         return firstPoint;
