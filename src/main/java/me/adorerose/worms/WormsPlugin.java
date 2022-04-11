@@ -24,6 +24,8 @@ public class WormsPlugin extends JavaPlugin {
         try {
             config = DataStorage.getStorage(Configuration.class);
             language = DataStorage.getStorage(Language.class);
+            config.load();
+            language.load();
 
             CommandRegistry.registerCommands();
             Bukkit.getPluginManager().registerEvents(new GeneralListener(this), this);
