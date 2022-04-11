@@ -1,9 +1,10 @@
 package me.adorerose.worms.service.profile;
 
+import me.adorerose.worms.util.TextUtils;
 import org.bukkit.entity.Player;
 
 public class WormsPlayerProfile implements PlayerProfile {
-    private Player player;
+    protected Player player;
 
     public WormsPlayerProfile(Player player) {
         this.player = player;
@@ -22,6 +23,11 @@ public class WormsPlayerProfile implements PlayerProfile {
     @Override
     public AdminProfile asAdmin() {
         return isAdmin() ? (AdminProfile) this : null;
+    }
+
+    @Override
+    public String toString() {
+        return TextUtils.coloredFormat("WormsPlayerProfile[player=%s]", player.getName());
     }
 
 }

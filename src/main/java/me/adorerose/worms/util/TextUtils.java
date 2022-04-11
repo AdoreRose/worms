@@ -15,12 +15,12 @@ public class TextUtils {
         for (int i = 0; i < byteStr.length; i++) {
             if (byteStr[i] == '%' && i + 1 < byteStr.length && byteStr[i + 1] == 's') {
                 formatted.append(str, afterArgIdx, i).append(colour).append(args[argIdx]).append("§f");
-                i += 3;
+                i += 2;
                 argIdx++;
-                afterArgIdx = i - 1;
+                afterArgIdx = i;
             }
         }
-        if (afterArgIdx < str.length() - 1) formatted.append(str, afterArgIdx, str.length());
+        if (afterArgIdx < str.length()) formatted.append(str, afterArgIdx, str.length());
         return formatted.toString();
     }
 }
