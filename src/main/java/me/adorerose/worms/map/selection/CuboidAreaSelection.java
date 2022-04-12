@@ -24,17 +24,22 @@ public class CuboidAreaSelection implements AreaSelection {
     }
 
     @Override
-    public void setFirstPoint(Location value) {
+    public Location setFirstPoint(Location value) {
         placeAscending(value, secondPoint);
+        return firstPoint;
     }
 
     @Override
-    public void setSecondPoint(Location value) {
+    public Location setSecondPoint(Location value) {
         placeAscending(firstPoint, value);
+        return secondPoint;
     }
 
     private void placeAscending(Location pos1, Location pos2) {
         if (pos1 != null && pos2 != null) {
+            pos1 = pos1.clone();
+            pos2 = pos2.clone();
+
             if (pos1.getX() > pos2.getX()) {
                 pos1.add(pos2.getX(), 0, 0);
                 pos2.setX(pos1.getX() - pos2.getX());

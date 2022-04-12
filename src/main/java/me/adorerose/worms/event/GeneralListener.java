@@ -1,6 +1,7 @@
 package me.adorerose.worms.event;
 
 import me.adorerose.worms.WormsPlugin;
+import me.adorerose.worms.map.selection.AreaSelection;
 import me.adorerose.worms.service.profile.*;
 import me.adorerose.worms.storage.file.Configuration;
 import me.adorerose.worms.storage.file.Language;
@@ -32,17 +33,24 @@ public class GeneralListener implements Listener {
         if (player.hasPermission("worms.admin") && item.getType().getId() == config.WAND_ITEM_ID && player.isSneaking())
         {
             AdminProfile profile = PlayerProfileManager.getPlayers().get(player).asAdmin();
-            Location loc = event.getClickedBlock().getLocation();
+            AreaSelection area = profile.getSelectedArea();
+            Location newLoc = null, loc = event.getClickedBlock().getLocation();
             event.setCancelled(true);
             switch (event.getAction()) {
                 case LEFT_CLICK_BLOCK:
-                    profile.getSelectedArea().setFirstPoint(loc);
-                    player.sendMessage(String.format(language.POS1, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                    newLoc = area.setFirstPoint(loc);
+                    profile.sendMessage(language.POS1, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
                 break;
                 case RIGHT_CLICK_BLOCK:
-                    profile.getSelectedArea().setSecondPoint(loc);
-                    player.sendMessage(String.format(language.POS2, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                    newLoc = area.setSecondPoint(loc);
+                    profile.sendMessage(language.POS2, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
                 break;
+            }
+            if (newLoc != null && !loc.equals(newLoc)) {
+                loc = area.firstPoint();
+                newLoc = area.secondPoint();
+                profile.sendMessage(language.POINTS_SORTED, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(),
+                        newLoc.getBlockX(), newLoc.getBlockY(), newLoc.getBlockZ());
             }
         }
     }

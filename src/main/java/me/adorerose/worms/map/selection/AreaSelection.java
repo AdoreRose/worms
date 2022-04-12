@@ -5,8 +5,8 @@ import org.bukkit.Location;
 public interface AreaSelection {
     Location firstPoint();
     Location secondPoint();
-    void setFirstPoint(Location value);
-    void setSecondPoint(Location value);
+    Location setFirstPoint(Location value);
+    Location setSecondPoint(Location value);
     double deltaX();
     double deltaY();
     double deltaZ();
