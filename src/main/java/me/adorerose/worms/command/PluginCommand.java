@@ -15,7 +15,6 @@ public abstract class PluginCommand implements CommandExecutor {
     private final String cmdName;
     private final int minArgs;
     private PluginCommand[] subCommands;
-    private String permission;
     private boolean consoleOnly;
 
     public void execute(PlayerProfile profile, String label, String[] args) { }
@@ -43,24 +42,20 @@ public abstract class PluginCommand implements CommandExecutor {
             if (profile == null) return true;
 
             PluginCommand executable;
-            String permission;
             if (isComposed()) {
                 executable = matchSubcommand(args[0]);
                 if (executable != null) {
                     args = Arrays.copyOfRange(args, 1, args.length);
-                    permission = executable.permission;
                 }
                 else {
                     sender.sendMessage(plugin.getLanguage().CMD_NOT_FOUND);
                     return true;
                 }
             }
-            else {
-                executable = this;
-                permission = this.permission;
-            }
+            else executable = this;
 
-            if (permission != null && !sender.hasPermission(permission)) sender.sendMessage(plugin.getLanguage().NO_PERMISSION);
+            CommandPermission annotation = executable.getClass().getDeclaredAnnotation(CommandPermission.class);
+            if (annotation != null && !sender.hasPermission(annotation.permission())) sender.sendMessage(plugin.getLanguage().NO_PERMISSION);
             else executable.execute(profile, label, args);
         }
         return true;
@@ -100,7 +95,4 @@ public abstract class PluginCommand implements CommandExecutor {
         return cmdName;
     }
 
-    public void setPermission(String permission) {
-        this.permission = permission;
-    }
 }

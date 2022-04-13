@@ -1,9 +1,11 @@
 package me.adorerose.worms.command.plugin;
 
 import me.adorerose.worms.WormsPlugin;
+import me.adorerose.worms.command.CommandPermission;
 import me.adorerose.worms.command.PluginCommand;
 import me.adorerose.worms.service.profile.PlayerProfile;
 
+@CommandPermission(permission = "worms.command.reload")
 public class ReloadCommand extends PluginCommand {
     public ReloadCommand() {
         super("reload");
