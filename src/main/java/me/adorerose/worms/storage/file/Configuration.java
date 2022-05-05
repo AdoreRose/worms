@@ -8,6 +8,8 @@ public class Configuration extends YamlFileStorage {
     public String MYSQL__USER = "cat";
     public String MYSQL__PASSWORD = "123";
     public int WAND_ITEM_ID = 280;
+    public int MAP__BUILDING_SIZE = 4;
+    public int MAP__BUILDING_PADDING = 1;
 
     public Configuration() throws IOException {
         super("config.yml", Configuration.class);

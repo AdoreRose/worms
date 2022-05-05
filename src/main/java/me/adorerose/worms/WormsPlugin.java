@@ -38,6 +38,7 @@ public class WormsPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         CommandRegistry.unregisterCommands();
     }
 
