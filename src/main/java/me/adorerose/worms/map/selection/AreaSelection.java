@@ -7,8 +7,8 @@ public interface AreaSelection {
     Location secondPoint();
     Location setFirstPoint(Location value);
     Location setSecondPoint(Location value);
-    double deltaX();
-    double deltaY();
-    double deltaZ();
+    int lengthX();
+    int lengthY();
+    int lengthZ();
     boolean entireSelected();
 }

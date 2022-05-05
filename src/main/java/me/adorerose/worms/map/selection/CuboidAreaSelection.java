@@ -61,18 +61,18 @@ public class CuboidAreaSelection implements AreaSelection {
     }
 
     @Override
-    public double deltaX() {
-        return firstPoint.getBlockX() - secondPoint.getBlockX();
+    public int lengthX() {
+        return 1 + secondPoint.getBlockX() - firstPoint.getBlockX();
     }
 
     @Override
-    public double deltaY() {
-        return firstPoint.getBlockY() - secondPoint.getBlockY();
+    public int lengthY() {
+        return 1 + secondPoint.getBlockY() - firstPoint.getBlockY();
     }
 
     @Override
-    public double deltaZ() {
-        return firstPoint.getBlockZ() - secondPoint.getBlockZ();
+    public int lengthZ() {
+        return 1 + secondPoint.getBlockZ() - firstPoint.getBlockZ();
     }
 
     @Override
