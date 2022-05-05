@@ -30,7 +30,7 @@ public class GeneralListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         if (item == null || event.getClickedBlock() == null) return;
-        if (player.hasPermission("worms.admin") && item.getType().getId() == config.WAND_ITEM_ID && player.isSneaking())
+        if (player.hasPermission("worms.admin") && item.getType().getId() == config.WAND_ITEM_ID)
         {
             AdminProfile profile = PlayerProfileManager.getPlayers().get(player).asAdmin();
             AreaSelection area = profile.getSelectedArea();
