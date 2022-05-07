@@ -56,6 +56,7 @@ public abstract class PluginCommand implements CommandExecutor {
 
             CommandPermission annotation = executable.getClass().getDeclaredAnnotation(CommandPermission.class);
             if (annotation != null && !sender.hasPermission(annotation.permission())) sender.sendMessage(plugin.getLanguage().NO_PERMISSION);
+            else if (args.length < executable.minArgs) tooFewArgsAction(sender);
             else executable.execute(profile, label, args);
         }
         return true;
