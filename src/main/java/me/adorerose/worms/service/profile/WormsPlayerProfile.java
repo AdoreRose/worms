@@ -1,6 +1,7 @@
 package me.adorerose.worms.service.profile;
 
 import me.adorerose.worms.util.TextUtils;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 public class WormsPlayerProfile implements PlayerProfile {
@@ -33,6 +34,19 @@ public class WormsPlayerProfile implements PlayerProfile {
     @Override
     public void sendMessage(String message, Object... args) {
         player.sendMessage(String.format(message, args));
+    }
+
+    @Override
+    public void sendActionBar(String message) {
+        message = message.replace('&', '§');
+        player.spigot().sendMessage(TextComponent.fromLegacyText(message));
+    }
+
+    @Override
+    public void sendActionBar(String[] message) {
+        StringBuilder acc = new StringBuilder();
+        for (String s : message) acc.append(s);
+        sendActionBar(acc.toString());
     }
 
     @Override

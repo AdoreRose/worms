@@ -12,4 +12,8 @@ public interface PlayerProfile {
     void sendMessage(String message);
 
     void sendMessage(String message, Object... args);
+
+    void sendActionBar(String message);
+
+    void sendActionBar(String[] message);
 }
