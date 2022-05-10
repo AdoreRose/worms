@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -18,6 +19,7 @@ public class BuildingZoneMapper extends BukkitRunnable {
     private Location pos1;
     private Location pos2;
     private World world;
+    private static final int ZONE_SIGN = -1;
 
     /** Размер карты поверхностей */
     int sfMapSize;
@@ -33,12 +35,14 @@ public class BuildingZoneMapper extends BukkitRunnable {
     int laySquare;
     /** Нижняя и верхняя граница сглаживания поверхности по аппликате */
     int w_zmn, w_zmx;
+    /** Граница исследования потенциальных зон на области */
+    int z_e;
 
     public BukkitTask accept(AreaSelection area) {
         this.pos1 = Objects.requireNonNull(area.firstPoint(), "pos1");
         this.pos2 = Objects.requireNonNull(area.secondPoint(), "pos2");
         this.world = pos1.getWorld();
-        this.bSize = (byte) (plugin.getConfiguration().MAP__BUILDING_SIZE >> 1);
+        this.bSize = (byte) plugin.getConfiguration().MAP__BUILDING_SIZE;
         this.bPadding = plugin.getConfiguration().MAP__BUILDING_PADDING;
 
         this.lengthX = area.lengthX();
@@ -48,20 +52,22 @@ public class BuildingZoneMapper extends BukkitRunnable {
         this.laySquare = lengthX * lengthZ;
         this.sfMapSize = laySquare * lengthY;
         this.surfaceMap = new byte[sfMapSize];
+        this.z_e = bSize + (bPadding << 1);
 
         return runTaskAsynchronously(plugin);
     }
 
     @Override
     public void run() {
-        long now = System.currentTimeMillis();
         int idx = 0;
+        byte bSizeHalf = (byte) (bSize >> 1);
+
         for (int y = pos1.getBlockY(); y <= pos2.getBlockY(); y++) {
             evalLayZBorder(y - pos1.getBlockY());
             for (int z = pos1.getBlockZ(); z <= pos2.getBlockZ(); z++) {
                 for (int x = pos1.getBlockX(); x <= pos2.getBlockX(); x++) {
                     if (world.getBlockAt(x, y, z).getType() != Material.AIR) {
-                        surfaceMap[idx] = bSize;
+                        surfaceMap[idx] = bSizeHalf;
                         smoothSurface(idx);
                     }
                     idx++;
@@ -69,12 +75,21 @@ public class BuildingZoneMapper extends BukkitRunnable {
             }
         }
 
-        Bukkit.broadcastMessage(plugin.getLanguage().CUSTOM +
-                TextUtils.coloredFormat("Анализ завершён (t=%s). Вывод содержимого карты поверхностей...", System.currentTimeMillis() - now));
+        retrieveZones();
+        dumpMap();
+    }
 
-        idx = 0;
+    private Location toWorldLocation(int pos) {
+        int y = pos / laySquare;
+        int z = pos1.getBlockZ() + (pos - laySquare * y) / lengthX;
+        int x = pos1.getBlockX() + pos % lengthX;
+        return new Location(world, x, pos1.getBlockY() + y, z);
+    }
+
+    private void dumpMap() {
+        int idx = 0;
         for (int y = pos1.getBlockY(); y <= pos2.getBlockY(); y++) {
-            Bukkit.broadcastMessage(plugin.getLanguage().CUSTOM + TextUtils.coloredFormat(
+            System.out.println(plugin.getLanguage().CUSTOM + TextUtils.coloredFormat(
                     "Слой %s (y = %s):", y - pos1.getBlockY(), y));
             ArrayList<String> rows = new ArrayList<>(lengthZ);
             for (int z = pos1.getBlockZ(); z <= pos2.getBlockZ(); z++) {
@@ -85,7 +100,7 @@ public class BuildingZoneMapper extends BukkitRunnable {
                 }
                 rows.add(rowVals.toString());
             }
-            for (int i = rows.size() - 1; i >= 0; i--) Bukkit.broadcastMessage(rows.get(i));
+            for (int i = rows.size() - 1; i >= 0; i--) System.out.println(rows.get(i));
         }
     }
 
@@ -113,6 +128,40 @@ public class BuildingZoneMapper extends BukkitRunnable {
             surfaceMap[widx] = (byte) Math.max(surfaceMap[widx], surfaceMap[widx + lengthX] - 1);
             if (surfaceMap[widx] > 1 && widx - lengthX > w_zmn && surfaceMap[widx - lengthX] < 1) smoothSurface(widx);
         }
+    }
+
+    private void retrieveZones() {
+        for (int y = 0; y <= sfMapSize - laySquare * (bSize + 1); y += laySquare) {
+            for (int z = y; z <= y + lengthX * (lengthZ - bSize); z += lengthX) {
+                for (int x = z; x <= z + lengthX - bSize; x++) {
+                    if (checkArea(x)) {
+                        Bukkit.broadcast(TextUtils.coloredFormat("Signed %s as potential zone.", x), "*");
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            player.sendBlockChange(toWorldLocation(x), Material.BEACON, (byte) 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean checkArea(int idx) {
+        for (int z = idx, idxmx = idx + lengthX * bSize; z < idxmx; z += lengthX) {
+            for (int x = z; x < z + bSize; x++) {
+                if (surfaceMap[x] <= 0) return false;
+            }
+        }
+
+        idx += laySquare;
+        for (int y = idx, ymax = idx + laySquare * bSize; y < ymax; y += laySquare) {
+            for (int z = y, zmax = y + bSize * lengthZ; z < zmax; z += lengthX) {
+                for (int  x = z; x < z + bSize; x++) {
+                    if (surfaceMap[x] != 0) return false;
+                }
+            }
+        }
+        surfaceMap[idx] = ZONE_SIGN;
+        return true;
     }
 
 }
