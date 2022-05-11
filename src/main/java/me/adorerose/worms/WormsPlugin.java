@@ -28,6 +28,7 @@ public class WormsPlugin extends JavaPlugin {
             language.load();
 
             CommandRegistry.registerCommands();
+            Bukkit.getMessenger().registerOutgoingPluginChannel(this, "WECUI");
             Bukkit.getPluginManager().registerEvents(new GeneralListener(this), this);
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,6 +40,7 @@ public class WormsPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
+        Bukkit.getMessenger().unregisterOutgoingPluginChannel(this);
         CommandRegistry.unregisterCommands();
     }
 

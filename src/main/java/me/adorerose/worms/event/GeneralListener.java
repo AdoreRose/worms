@@ -2,6 +2,8 @@ package me.adorerose.worms.event;
 
 import me.adorerose.worms.WormsPlugin;
 import me.adorerose.worms.map.selection.AreaSelection;
+import me.adorerose.worms.map.wecui.CUIEvent;
+import me.adorerose.worms.map.wecui.SelectionPointEvent;
 import me.adorerose.worms.service.profile.*;
 import me.adorerose.worms.storage.file.Configuration;
 import me.adorerose.worms.storage.file.Language;
@@ -34,18 +36,25 @@ public class GeneralListener implements Listener {
         {
             AdminProfile profile = PlayerProfileManager.getPlayers().get(player).asAdmin();
             AreaSelection area = profile.getSelectedArea();
-            Location newLoc = null, loc = event.getClickedBlock().getLocation();
+            Location newLoc, loc = event.getClickedBlock().getLocation();
             event.setCancelled(true);
+
+            CUIEvent pointEvent;
             switch (event.getAction()) {
                 case LEFT_CLICK_BLOCK:
                     newLoc = area.setFirstPoint(loc);
+                    pointEvent = new SelectionPointEvent(SelectionPointEvent.POS1, newLoc, 0);
                     profile.sendMessage(language.POS1, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
                 break;
                 case RIGHT_CLICK_BLOCK:
                     newLoc = area.setSecondPoint(loc);
+                    pointEvent = new SelectionPointEvent(SelectionPointEvent.POS2, newLoc, 0);
                     profile.sendMessage(language.POS2, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
                 break;
+                default: return;
             }
+
+            profile.sendCUIEvent(pointEvent);
             if (newLoc != null && !loc.equals(newLoc)) {
                 loc = area.firstPoint();
                 newLoc = area.secondPoint();
