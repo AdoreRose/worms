@@ -1,18 +1,29 @@
 package me.adorerose.worms.map;
 
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitPlayer;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
+import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
+import com.sk89q.worldedit.regions.selector.ConvexPolyhedralRegionSelector;
 import me.adorerose.worms.WormsPlugin;
 import me.adorerose.worms.map.selection.AreaSelection;
+import me.adorerose.worms.service.profile.AdminProfile;
 import me.adorerose.worms.util.TextUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
+
+import static com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits.forActor;
+import static org.bukkit.plugin.java.JavaPlugin.getPlugin;
 
 public class BuildingZoneMapper extends BukkitRunnable {
     private static final WormsPlugin plugin = WormsPlugin.getInstance();
@@ -20,6 +31,12 @@ public class BuildingZoneMapper extends BukkitRunnable {
     private Location pos2;
     private World world;
     private static final int ZONE_SIGN = -1;
+    private final AdminProfile holder;
+
+    private ConvexPolyhedralRegionSelector selector;
+    private ActorSelectorLimits selectorLimits;
+    private BukkitPlayer player;
+    private LocalSession session;
 
     /** Размер карты поверхностей */
     int sfMapSize;
@@ -38,6 +55,10 @@ public class BuildingZoneMapper extends BukkitRunnable {
     /** Граница исследования потенциальных зон на области */
     int z_e;
 
+    public BuildingZoneMapper(AdminProfile holder) {
+        this.holder = holder;
+    }
+
     public BukkitTask accept(AreaSelection area) {
         this.pos1 = Objects.requireNonNull(area.firstPoint(), "pos1");
         this.pos2 = Objects.requireNonNull(area.secondPoint(), "pos2");
@@ -45,6 +66,7 @@ public class BuildingZoneMapper extends BukkitRunnable {
         this.bSize = (byte) plugin.getConfiguration().MAP__BUILDING_SIZE;
         this.bPadding = plugin.getConfiguration().MAP__BUILDING_PADDING;
 
+        fitToSquare(area);
         this.lengthX = area.lengthX();
         this.lengthY = area.lengthY();
         if (lengthY == 0) lengthY = 1;
@@ -54,6 +76,18 @@ public class BuildingZoneMapper extends BukkitRunnable {
         this.surfaceMap = new byte[sfMapSize];
         this.z_e = bSize + (bPadding << 1);
 
+        WorldEdit we = WorldEdit.getInstance();
+        session = we.getSessionManager().findByName(holder.getPlayer().getName());
+        if (session != null) {
+            com.sk89q.worldedit.world.World world = WorldEdit.getInstance().getServer().getWorlds().get(0);
+            player = new BukkitPlayer(getPlugin(WorldEditPlugin.class), we.getServer(), holder.getPlayer());
+            selector = new ConvexPolyhedralRegionSelector(world);
+            selectorLimits = forActor(player);
+
+            session.setRegionSelector(world, selector);
+            player.dispatchCUIEvent(new SelectionShapeEvent("polyhedron"));
+            session.describeCUI(player);
+        }
         return runTaskAsynchronously(plugin);
     }
 
@@ -61,6 +95,7 @@ public class BuildingZoneMapper extends BukkitRunnable {
     public void run() {
         int idx = 0;
         byte bSizeHalf = (byte) (bSize >> 1);
+        session.dispatchCUIEvent(player, new SelectionShapeEvent("polyhedron"));
 
         for (int y = pos1.getBlockY(); y <= pos2.getBlockY(); y++) {
             evalLayZBorder(y - pos1.getBlockY());
@@ -76,7 +111,16 @@ public class BuildingZoneMapper extends BukkitRunnable {
         }
 
         retrieveZones();
-        dumpMap();
+        int[] offsets = selectZones();
+
+    }
+
+    private void fitToSquare(AreaSelection area) {
+        int lenX = area.lengthX();
+        int lenZ = area.lengthZ();
+        int deltaLen = lenX - lenZ;
+        if (deltaLen > 0) area.secondPoint().add(0, 0, deltaLen);
+        else area.secondPoint().subtract(deltaLen, 0, 0);
     }
 
     private Location toWorldLocation(int pos) {
@@ -136,9 +180,7 @@ public class BuildingZoneMapper extends BukkitRunnable {
                 for (int x = z; x <= z + lengthX - bSize; x++) {
                     if (checkArea(x)) {
                         Bukkit.broadcast(TextUtils.coloredFormat("Signed %s as potential zone.", x), "*");
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            player.sendBlockChange(toWorldLocation(x), Material.BEACON, (byte) 0);
-                        }
+//                        for (Player player : Bukkit.getOnlinePlayers()) player.sendBlockChange(toWorldLocation(x), Material.BEACON, (byte) 0);
                     }
                 }
             }
@@ -164,4 +206,38 @@ public class BuildingZoneMapper extends BukkitRunnable {
         return true;
     }
 
+    private int[] selectZones() {
+        int[] preferredOffsets = new int[lengthY - bSize + 1];
+        for (int y = 0, offsetIdx = 0; y <= sfMapSize - laySquare * bSize; y += laySquare) {
+            int[] zoneCount = new int[z_e * z_e];
+            for (int z = y, cntIdx = 0; z < y + lengthX * z_e; z += lengthX) {
+                for (int x = z; x < z + z_e; x++) {
+                    zoneCount[cntIdx++] = countZones(y, z, x);
+                }
+            }
+            StringBuilder sb = new StringBuilder(128);
+            int maxIdx = -1;
+            for (int max = 0, i = 0; i < zoneCount.length; i++) {
+                if (zoneCount[i] > max) {
+                    max = zoneCount[i];
+                    maxIdx = i;
+                }
+                sb.append(i).append("=").append(zoneCount[i]).append("; ");
+            }
+            preferredOffsets[offsetIdx++] = maxIdx;
+            System.out.println(TextUtils.coloredFormat("At lay %s => %s", y, sb.toString()));
+        }
+        Bukkit.broadcastMessage(Arrays.toString(preferredOffsets));
+        return preferredOffsets;
+    }
+
+    private int countZones(int y0, int z0, int idx) {
+        int count = 0;
+        for (int z = idx, dZ = z_e  * lengthX; z < y0 + laySquare; z += dZ) {
+            for (int x = z; x < z0 + lengthX; x += z_e) {
+                if (surfaceMap[x] == -1) count++;
+            }
+        }
+        return count;
+    }
 }

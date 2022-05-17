@@ -54,7 +54,7 @@ public class GeneralListener implements Listener {
                 default: return;
             }
 
-            profile.sendCUIEvent(pointEvent);
+//            profile.sendCUIEvent(pointEvent);
             if (newLoc != null && !loc.equals(newLoc)) {
                 loc = area.firstPoint();
                 newLoc = area.secondPoint();
